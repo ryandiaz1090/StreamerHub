@@ -1,13 +1,3 @@
-window.onload = function() {
-    document.getElementById("addStreamButton").onclick = function() {
-        let name = document.getElementById("streamId").value;
-
-        chrome.storage.sync.set({'streamer': name}, () => {
-            alert("Success");
-        })
-    }
-};
-
 function addStreamer(status, name, viewers){
     let tableRef = document.getElementById("onlineStreamersTable");
     let row = tableRef.insertRow(1);
