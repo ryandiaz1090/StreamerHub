@@ -2,35 +2,37 @@ window.onload = function() {
     const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
 
 
-//Our API Key/client id for twitch.tv
+    //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "wn4jubf3xbpbk49l089pb1p429qlce";
 
-//An example API call to mixer getting specific channel information
+    //An example API call to mixer getting specific channel information
     const BASE_URL_MIXER = "https://mixer.com/api/v1/channels/";
 
-// An API to get user follow
+    // An API to get user follow
     const GET_URL_FOLLOW = "https://api.twitch.tv/kraken/users/<user ID>/follows/channels";
 
-//Get the button to add streamer, and run streamSelected() on click
+    //Get the button to add streamer, and run streamSelected() on click
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
 
+    let streamerData = [
+        { status: '', username: '', viewers: '' }
+    ];
+
     let allStreamers = {
-        data: {
-            status: '',
-            username: '',
-            viewers: ''
-        }
+        twitch_streamers: [],
+        mixer_streamers: []
     };
 
-//Function to test if properly storing streamer data
-    const show = document.getElementById("showButton");
-    show.addEventListener('click', showStreamers);
+    //Function to test if properly storing streamer data
+    const add = document.getElementById("addButton");
+    show.addEventListener('click', addStreamers);
 
-    function showStreamers() {
-        let vals = Object.values(allStreamers);
-        console.log('Values:', vals);
+    function addStreamers() {
+
     }
+
+
 
     function streamSelected() {
         let ele = document.getElementsByName('website');
@@ -49,7 +51,7 @@ window.onload = function() {
         }
     }
 
-//Function to get streamer data from Twitch's API
+    //Function to get streamer data from Twitch's API
     /* Twitch seems to require that the client-id be in the Javascript Header Object, more info on those:
        https://developer.mozilla.org/en-US/docs/Web/API/Headers
        https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch */
@@ -74,12 +76,11 @@ window.onload = function() {
                     console.log("Offline");
                 } else {
                     addStreamer(obj.type, obj.user_name, obj.viewer_count);
-                    allStreamers = Object.assign({'status': obj.type, 'username': obj.user_name, 'viewers': obj.viewer_count});
                 }
             })
     }
 
-//Function to get streamer data from Mixer's API
+    //Function to get streamer data from Mixer's API
     async function getStreamerMixer() {
         const user = document.querySelector("#streamId").value;
         console.log("Calling mixer api for user: " + user);
@@ -112,6 +113,21 @@ window.onload = function() {
         cell1.innerHTML = status;
         cell2.innerHTML = name;
         cell3.innerHTML = viewers;
+
+        //Add streamer to local storage using chrome.storage
+        chrome.storage.local.set({"status" : status, "username": name, "viewers": viewers});
+    }
+
+    //Function to test if properly storing streamer data
+    const show = document.getElementById("showButton");
+    show.addEventListener('click', showStreamers);
+
+    function showStreamers() {
+        chrome.storage.local.get({"status" : status, "username" : name, "viewers" : viewers}, function(data) {
+            console.log(data.username);
+            console.log(data.status);
+            console.log(data.viewers);
+        });
     }
 
     function getFollowers(name) {
