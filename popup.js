@@ -15,24 +15,8 @@ window.onload = function() {
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
 
-    let streamerData = [
-        { status: '', username: '', viewers: '' }
-    ];
-
-    let allStreamers = {
-        twitch_streamers: [],
-        mixer_streamers: []
-    };
-
-    //Function to test if properly storing streamer data
-    const add = document.getElementById("addButton");
-    show.addEventListener('click', addStreamers);
-
-    function addStreamers() {
-
-    }
-
-
+    //let streamersArray = [ { status : '', username : '', viewers : 0 } ];
+    let streamersArray = [ ];
 
     function streamSelected() {
         let ele = document.getElementsByName('website');
@@ -93,29 +77,54 @@ window.onload = function() {
         })
             .then((response) => response.json())
             .then((user) => {
-                console.log('Success:', user);
+                //console.log('Success:', user);
 
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
                     addStreamer(user.online, user.token, user.viewersCurrent);
+                    chrome.storage.local.get(function(result) {
+                        if (Object.keys(result).length > 0 && result.streamersArray) {
+                            // The streamer array already exists, add to it the status, username, and viewers
+                            console.log("we are in the first if...");
+                            result.streamersArray = [{ status: user.online, username: user.token, viewers : user.viewersCurrent }];
+                            //result.streamersArray.push({status: status, username: user.token, viewers: user.viewersCurrent});
+
+                        } else {
+                            // The data array doesn't exist yet, create it
+                            console.log("we are in the else...");
+                            result.streamersArray = [{ status: user.online, username: user.token, viewers : user.viewersCurrent }];
+                        }
+
+                        // Now save the updated items using set
+                        chrome.storage.sync.set({streamersArray:{}}, function() {
+                            console.log(result);
+                            console.log('Data successfully saved to the storage!');
+                        });
+
+                        //console.log(result.streamersArray);
+                    });
+                    //Add streamer to local storage using chrome.storage
+                    //chrome.storage.local.set({streamersArray:{status: user.online, username: user.token, viewers:user.viewersCurrent}}, function() {
+                    //    console.log(" Added to storage.sync...\n");
+                    //});
 
                 } else
                     console.log("Offline");
             })
     }
 
-    function addStreamer(status, name, viewers) {
+    function addStreamer(status, username, viewers) {
         let tableRef = document.getElementById("onlineStreamersTable");
         let row = tableRef.insertRow(1);
-        let cell1 = row.insertCell(0);
-        let cell2 = row.insertCell(1);
-        let cell3 = row.insertCell(2);
-        cell1.innerHTML = status;
-        cell2.innerHTML = name;
-        cell3.innerHTML = viewers;
+        let statusCell = row.insertCell(0);
+        let rowCell = row.insertCell(1);
+        let viewerCell = row.insertCell(2);
+        statusCell.innerHTML = status;
+        rowCell.innerHTML = username;
+        viewerCell.innerHTML = viewers;
 
-        //Add streamer to local storage using chrome.storage
-        chrome.storage.local.set({"status" : status, "username": name, "viewers": viewers});
+        //streamersArray.push({status: status, username: username, viewers: viewers});
+
     }
 
     //Function to test if properly storing streamer data
@@ -123,11 +132,23 @@ window.onload = function() {
     show.addEventListener('click', showStreamers);
 
     function showStreamers() {
-        chrome.storage.local.get({"status" : status, "username" : name, "viewers" : viewers}, function(data) {
-            console.log(data.username);
-            console.log(data.status);
-            console.log(data.viewers);
+        //console.log("Showing streamers in local array...\n");
+        //console.log(streamersArray);
+
+        //console.log("Showing streamers in storage array...\n");
+        chrome.storage.local.get(function(result) {
+            console.log(result);
         });
+
+
+    }
+
+    //Function to test if properly storing streamer data
+    const clear = document.getElementById("clearButton");
+    clear.addEventListener('click', clearStreamers);
+
+    function clearStreamers() {
+
     }
 
     function getFollowers(name) {
