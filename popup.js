@@ -82,12 +82,16 @@ window.onload = function() {
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
                     addStreamer(user.online, user.token, user.viewersCurrent);
+
                     chrome.storage.local.get(function(result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
                             console.log("we are in the first if...");
-                            result.streamersArray = [{ status: user.online, username: user.token, viewers : user.viewersCurrent }];
-                            //result.streamersArray.push({status: status, username: user.token, viewers: user.viewersCurrent});
+                            console.log(Object.keys(result));
+                            console.log(Object.keys(result.streamersArray));
+                            console.log("Printing local streamers array...\n");
+                            console.log(streamersArray);
+                            result.streamersArray = {streamersArray};
 
                         } else {
                             // The data array doesn't exist yet, create it
@@ -96,17 +100,12 @@ window.onload = function() {
                         }
 
                         // Now save the updated items using set
-                        chrome.storage.sync.set({streamersArray:{}}, function() {
+                        chrome.storage.sync.set({streamersArray}, function() {
                             console.log(result);
                             console.log('Data successfully saved to the storage!');
                         });
 
-                        //console.log(result.streamersArray);
                     });
-                    //Add streamer to local storage using chrome.storage
-                    //chrome.storage.local.set({streamersArray:{status: user.online, username: user.token, viewers:user.viewersCurrent}}, function() {
-                    //    console.log(" Added to storage.sync...\n");
-                    //});
 
                 } else
                     console.log("Offline");
@@ -123,7 +122,8 @@ window.onload = function() {
         rowCell.innerHTML = username;
         viewerCell.innerHTML = viewers;
 
-        //streamersArray.push({status: status, username: username, viewers: viewers});
+        streamersArray.push({status: status, username: username, viewers: viewers});
+
 
     }
 
@@ -135,15 +135,15 @@ window.onload = function() {
         //console.log("Showing streamers in local array...\n");
         //console.log(streamersArray);
 
-        //console.log("Showing streamers in storage array...\n");
-        chrome.storage.local.get(function(result) {
+        console.log("Showing streamers in storage array...\n");
+        chrome.storage.sync.get(function(result) {
             console.log(result);
         });
 
 
     }
 
-    //Function to test if properly storing streamer data
+    //Function to clear data in chrome.storage api
     const clear = document.getElementById("clearButton");
     clear.addEventListener('click', clearStreamers);
 
@@ -151,6 +151,7 @@ window.onload = function() {
 
     }
 
+    //Get the followers of a twitch account
     function getFollowers(name) {
         return new Promise((resolve, reject) => {
             request({GET_URL_FOLLOW, json: true}, (err, resp, body) => {
