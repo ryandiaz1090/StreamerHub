@@ -1,7 +1,6 @@
 window.onload = function() {
     const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
 
-
     //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "wn4jubf3xbpbk49l089pb1p429qlce";
 
@@ -17,6 +16,28 @@ window.onload = function() {
 
     //let streamersArray = [ { status : '', username : '', viewers : 0 } ];
     let streamersArray = [ ];
+
+    function buildTable() {
+        //Get streamers in background, push to table
+        chrome.storage.sync.get(function(result) {
+            console.log("Getting array of streamers at startup...\n");
+            console.log(result.streamersArray);
+
+            let tableRef = document.getElementById("onlineStreamersTable");
+
+            result.streamersArray.forEach(function(result){
+                let row = tableRef.insertRow(1);
+                let statusCell = row.insertCell(0);
+                let rowCell = row.insertCell(1);
+                let viewerCell = row.insertCell(2);
+                statusCell.innerHTML = Object.values(result);
+                rowCell.innerHTML = result.streamersArray;
+                viewerCell.innerHTML = result.streamersArray;
+            })
+        });
+    }
+
+    buildTable();
 
     function streamSelected() {
         let ele = document.getElementsByName('website');
@@ -34,6 +55,7 @@ window.onload = function() {
             }
         }
     }
+
 
     //Function to get streamer data from Twitch's API
     /* Twitch seems to require that the client-id be in the Javascript Header Object, more info on those:

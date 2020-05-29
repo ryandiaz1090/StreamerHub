@@ -6,18 +6,21 @@
 
 </head>
 <body>
-<input type="text" id="streamId" autofocus>
-<button id="addStreamButton">Add Stream</button>
+
+<input type="text" id="streamId" autofocus> <br>
 <input type="radio" name="website" value="twitch"> Twitch
 <input type="radio" name="website" value="mixer" checked> Mixer
 
-<table style="width:100%" id="onlineStreamersTable">
+<table class="rwd-table" id="onlineStreamersTable">
     <tr>
         <th>Status:</th>
         <th>Display Name:</th>
         <th>Viewer Count:</th>
     </tr>
 </table>
+
+
+<button id="addStreamButton">Add Stream</button>
 <button id="clearButton">Clear Streamers</button>
 <button id="showButton">Show Streamers</button>
 </body>
