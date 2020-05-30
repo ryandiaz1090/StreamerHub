@@ -21,9 +21,9 @@ window.onload = function() {
         chrome.storage.sync.get(function(result) {
             console.log("Getting array of streamers at startup...\n");
             if(Object.keys(result).length > 0) {
-                console.log(result);
                 streamersArray = result.streamersArray;
                 
+                console.log("Printing streamersArray after pushing data from storage...");
                 console.log(streamersArray);
             }
 
@@ -126,14 +126,9 @@ window.onload = function() {
 
                     }
 
-                    
-
                     chrome.storage.local.get(function(result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
-                            console.log("we are in the first if...");
-                            //console.log(Object.keys(result));
-                            //console.log(Object.keys(result.streamersArray));
                             console.log("Printing local streamers array...\n");
                             console.log(streamersArray);
                             result.streamersArray = {streamersArray};
@@ -177,15 +172,11 @@ window.onload = function() {
     show.addEventListener('click', showStreamers);
 
     function showStreamers() {
-        //console.log("Showing streamers in local array...\n");
-        //console.log(streamersArray);
 
         console.log("Showing streamers in storage array...\n");
         chrome.storage.sync.get(function(result) {
             console.log(result);
         });
-
-
     }
 
     //Function to clear data in chrome.storage api
