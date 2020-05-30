@@ -1,6 +1,6 @@
 window.onload = function() {
     const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
-
+    //test change
     //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "wn4jubf3xbpbk49l089pb1p429qlce";
 
