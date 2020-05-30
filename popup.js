@@ -1,6 +1,6 @@
 window.onload = function() {
     const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
-    //test change
+
     //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "wn4jubf3xbpbk49l089pb1p429qlce";
 
@@ -14,15 +14,20 @@ window.onload = function() {
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
 
-    //let streamersArray = [ { status : '', username : '', viewers : 0 } ];
     let streamersArray = [ ];
 
     function buildTable() {
         //Get streamers in background, push to table
         chrome.storage.sync.get(function(result) {
             console.log("Getting array of streamers at startup...\n");
-            console.log(result.streamersArray);
+            if(Object.keys(result).length > 0) {
+                console.log(result);
+                streamersArray = result.streamersArray;
+                
+                console.log(streamersArray);
+            }
 
+            
             let tableRef = document.getElementById("onlineStreamersTable");
 
             result.streamersArray.forEach(function(result){
@@ -34,10 +39,18 @@ window.onload = function() {
                 rowCell.innerHTML = result.streamersArray;
                 viewerCell.innerHTML = result.streamersArray;
             })
+            
         });
     }
 
     buildTable();
+
+    //Helper function to check if user exists in array
+    function userExists(username) {
+        return streamersArray.some(function(el) {
+          return el.username === username;
+        }); 
+      }
 
     function streamSelected() {
         let ele = document.getElementsByName('website');
@@ -95,22 +108,32 @@ window.onload = function() {
             method: 'GET', // or 'PUT'
             headers: {
                 'Content-Type': 'application/json',
+                
+                //'x-ratelimit-remaining': 'application/json',
             },
         })
             .then((response) => response.json())
             .then((user) => {
-                //console.log('Success:', user);
+                console.log('Success:', user);
 
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
-                    addStreamer(user.online, user.token, user.viewersCurrent);
+
+                    //Check to see if user is already in the local streamersArray before adding
+                    if(!userExists(user.token)) {
+                        console.log("User does not exist in array...");
+                        addStreamer(user.online, user.token, user.viewersCurrent);
+
+                    }
+
+                    
 
                     chrome.storage.local.get(function(result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
                             console.log("we are in the first if...");
-                            console.log(Object.keys(result));
-                            console.log(Object.keys(result.streamersArray));
+                            //console.log(Object.keys(result));
+                            //console.log(Object.keys(result.streamersArray));
                             console.log("Printing local streamers array...\n");
                             console.log(streamersArray);
                             result.streamersArray = {streamersArray};
