@@ -16,6 +16,7 @@ window.onload = function() {
 
     let streamersArray = [ ];
 
+
     function buildTable() {
         //Get streamers in background, push to table
         chrome.storage.sync.get(function(result) {
@@ -29,6 +30,15 @@ window.onload = function() {
 
             
             let tableRef = document.getElementById("onlineStreamersTable");
+
+
+            //TODO: Getting user name to pass into api call to update table at startup
+            //Decide how to do so without busting API call limits
+            let user = streamersArray.filter(item => item.username);
+            for(i = 0; i < user.length; i++)
+                console.log(user[i].username);
+
+            //
 
             result.streamersArray.forEach(function(result){
                 let row = tableRef.insertRow(1);
