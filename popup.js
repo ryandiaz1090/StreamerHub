@@ -43,11 +43,11 @@ window.onload = function() {
             result.streamersArray.forEach(function(result){
                 let row = tableRef.insertRow(1);
                 let statusCell = row.insertCell(0);
-                let rowCell = row.insertCell(1);
+                let nameCell = row.insertCell(1);
                 let viewerCell = row.insertCell(2);
-                statusCell.innerHTML = Object.values(result);
-                rowCell.innerHTML = result.streamersArray;
-                viewerCell.innerHTML = result.streamersArray;
+                statusCell.innerHTML = JSON.stringify(result.status);
+                nameCell.innerHTML = result.username;
+                viewerCell.innerHTML = result.viewers;
             })
             
         });
