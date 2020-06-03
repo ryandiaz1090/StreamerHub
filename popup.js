@@ -110,7 +110,7 @@ window.onload = function() {
         })
             .then((response) => response.json())
             .then((user) => {
-                console.log('Success:', user);
+                //console.log('Success:', user);
 
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
@@ -136,7 +136,7 @@ window.onload = function() {
         })
             .then((response) => response.json())
             .then((user) => {
-                console.log('Success:', user);
+                //console.log('Success:', user);
 
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
@@ -153,42 +153,41 @@ window.onload = function() {
                     chrome.storage.local.get(function(result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
-                            console.log("Printing local streamers array...\n");
-                            console.log(streamersArray);
+                            //console.log("Printing local streamers array...\n");
+                            //console.log(streamersArray);
                             result.streamersArray = {streamersArray};
 
                         } else {
                             // The data array doesn't exist yet, create it
-                            console.log("we are in the else...");
                             result.streamersArray = [{ status: user.online, username: user.token, viewers : user.viewersCurrent }];
                         }
 
                         // Now save the updated items using set
                         chrome.storage.sync.set({streamersArray}, function() {
-                            console.log(result);
-                            console.log('Data successfully saved to the storage!');
+                            //console.log(result);
+                            //console.log('Data successfully saved to the storage!');
                         });
 
                     });
 
                 } else {
-                    console.log("Offline"); 
+                    console.log(user.token + " is Offline"); 
 
                 }
             })
     }
-
+    //Used to update table on startup, no need to push user to streamersArray, already exists
     function updateStreamer(status, username, viewers) {
         let tableRef = document.getElementById("onlineStreamersTable");
         let row = tableRef.insertRow(1);
         let statusCell = row.insertCell(0);
         let rowCell = row.insertCell(1);
         let viewerCell = row.insertCell(2);
-        statusCell.innerHTML = status;
+        statusCell.innerHTML = "Online";
         rowCell.innerHTML = username;
         viewerCell.innerHTML = viewers;
     }
-
+    //Used to add a new streamer to the table
     function addStreamer(status, username, viewers) {
         let tableRef = document.getElementById("onlineStreamersTable");
         let row = tableRef.insertRow(1);
