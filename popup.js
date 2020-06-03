@@ -1,8 +1,9 @@
 window.onload = function() {
-    const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
-
+    //const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
+    const BASE_URL_TWITCH = "https://id.twitch.tv/oauth2/authorize?";
+    
     //Our API Key/client id for twitch.tv
-    const CLIENT_ID_TWITCH = "wn4jubf3xbpbk49l089pb1p429qlce";
+    const CLIENT_ID_TWITCH = "c6pext763cxzkkw9ox5e3map72jtd8";
 
     //An example API call to mixer getting specific channel information
     const BASE_URL_MIXER = "https://mixer.com/api/v1/channels/";
@@ -35,11 +36,13 @@ window.onload = function() {
             //TODO: Getting user name to pass into api call to update table at startup
             //Decide how to do so without busting API call limits
             let user = streamersArray.filter(item => item.username);
-            for(i = 0; i < user.length; i++)
-                console.log(user[i].username);
+            for(i = 0; i < user.length; i++){
+                //console.log(user[i].username);
+                getStreamerMixer(user[i].username);
+            }
 
-            //
-
+            /*
+            IDK WHAT THIS EVEN IS
             result.streamersArray.forEach(function(result){
                 let row = tableRef.insertRow(1);
                 let statusCell = row.insertCell(0);
@@ -49,7 +52,7 @@ window.onload = function() {
                 nameCell.innerHTML = result.username;
                 viewerCell.innerHTML = result.viewers;
             })
-            
+            */
         });
     }
 
@@ -62,6 +65,13 @@ window.onload = function() {
         }); 
       }
 
+    //Helper function to get data in textbox
+    function getName() {
+        const user = document.querySelector("#streamId").value;
+        return user;
+    }
+
+
     function streamSelected() {
         let ele = document.getElementsByName('website');
 
@@ -69,10 +79,10 @@ window.onload = function() {
             if (ele[i].checked) {
                 switch (ele[i].value) {
                     case "twitch":
-                        getStreamerTwitch();
+                        getStreamerTwitch(getName());
                         return;
                     case "mixer":
-                        getStreamerMixer();
+                        getStreamerMixer(getName());
                         return;
                 }
             }
@@ -84,15 +94,18 @@ window.onload = function() {
     /* Twitch seems to require that the client-id be in the Javascript Header Object, more info on those:
        https://developer.mozilla.org/en-US/docs/Web/API/Headers
        https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch */
-    async function getStreamerTwitch() {
-        const user = document.querySelector("#streamId").value;
+    async function getStreamerTwitch(user) {
         console.log("Calling twitch api for user: " + user);
 
         fetch(BASE_URL_TWITCH + user, {
             method: 'GET', // or 'PUT'
             headers: {
-                'Content-Type': 'application/json',
+                //'Content-Type': 'application/json',
                 'Client-ID': CLIENT_ID_TWITCH,
+                'redirect_uri' : 'https://localhost',
+                'response_type': '9I3hpdAB/qedtilOhcReAQjLh/axODD1emluzX7FFzE=',
+                'scope' : 'analytics:read:extensions',
+
             },
         })
             .then((response) => response.json())
@@ -110,8 +123,7 @@ window.onload = function() {
     }
 
     //Function to get streamer data from Mixer's API
-    async function getStreamerMixer() {
-        const user = document.querySelector("#streamId").value;
+    async function getStreamerMixer(user) {
         console.log("Calling mixer api for user: " + user);
 
         fetch(BASE_URL_MIXER + user, {
@@ -134,6 +146,8 @@ window.onload = function() {
                         console.log("User does not exist in array...");
                         addStreamer(user.online, user.token, user.viewersCurrent);
 
+                    } else if(userExists(user.token)) {
+                        updateStreamer(user.online, user.token, user.viewersCurrent);
                     }
 
                     chrome.storage.local.get(function(result) {
@@ -157,9 +171,22 @@ window.onload = function() {
 
                     });
 
-                } else
-                    console.log("Offline");
+                } else {
+                    console.log("Offline"); 
+
+                }
             })
+    }
+
+    function updateStreamer(status, username, viewers) {
+        let tableRef = document.getElementById("onlineStreamersTable");
+        let row = tableRef.insertRow(1);
+        let statusCell = row.insertCell(0);
+        let rowCell = row.insertCell(1);
+        let viewerCell = row.insertCell(2);
+        statusCell.innerHTML = status;
+        rowCell.innerHTML = username;
+        viewerCell.innerHTML = viewers;
     }
 
     function addStreamer(status, username, viewers) {
