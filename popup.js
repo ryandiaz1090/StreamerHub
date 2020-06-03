@@ -117,7 +117,35 @@ window.onload = function() {
                 if (obj === undefined) {
                     console.log("Offline");
                 } else {
-                    addStreamer(obj.type, obj.user_name, obj.viewer_count);
+                    
+                    //Check to see if user is already in the local streamersArray before adding
+                    if(!userExists(obj.user_name)) {
+                        console.log("User does not exist in array...");
+                        addStreamer(obj.type, obj.user_name, obj.viewer_count);
+
+                    } else if(userExists(obj.user_name)) {
+                        updateStreamer(obj.type, obj.user_name, obj.viewer_count);
+                    }
+
+                    chrome.storage.local.get(function(result) {
+                        if (Object.keys(result).length > 0 && result.streamersArray) {
+                            // The streamer array already exists, add to it the status, username, and viewers
+                            //console.log("Printing local streamers array...\n");
+                            //console.log(streamersArray);
+                            result.streamersArray = {streamersArray};
+
+                        } else {
+                            // The data array doesn't exist yet, create it
+                            result.streamersArray = [{ status: obj.type, username: obj.user_name, viewers : obj.user_name }];
+                        }
+
+                        // Now save the updated items using set
+                        chrome.storage.sync.set({streamersArray}, function() {
+                            //console.log(result);
+                            //console.log('Data successfully saved to the storage!');
+                        });
+
+                    });
                 }
             })
     }
