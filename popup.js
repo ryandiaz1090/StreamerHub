@@ -1,9 +1,11 @@
 window.onload = function() {
-    //const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
-    const BASE_URL_TWITCH = "https://id.twitch.tv/oauth2/authorize?";
+    const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
+    //const BASE_URL_TWITCH = "https://id.twitch.tv/oauth2/authorize?";
     
     //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "c6pext763cxzkkw9ox5e3map72jtd8";
+
+    const CLIENT_SECRET = "8ieeydcekh54lob7td6ie09nphcv5r"
 
     //An example API call to mixer getting specific channel information
     const BASE_URL_MIXER = "https://mixer.com/api/v1/channels/";
@@ -36,11 +38,23 @@ window.onload = function() {
             for(i = 0; i < user.length; i++){
                 //console.log(user[i].username);
                 getStreamerMixer(user[i].username);
+                getStreamerTwitch(user[i].username);
             }
         });
     }
 
     buildTable();
+async function getOauthToken() {
+    const reponse = await fetch("https://id.twitch.tv/oauth2/token?client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET + "&grant_type=client_credentials", {
+        method : "POST",
+
+    })
+    .then((response) => response.json())
+    .then(data => {
+        console.log(data);
+    })
+}
+
 
     //Helper function to check if user exists in array
     function userExists(username) {
@@ -88,15 +102,14 @@ window.onload = function() {
             headers: {
                 //'Content-Type': 'application/json',
                 'Client-ID': CLIENT_ID_TWITCH,
-                'redirect_uri' : 'https://localhost',
-                'response_type': '9I3hpdAB/qedtilOhcReAQjLh/axODD1emluzX7FFzE=',
-                'scope' : 'analytics:read:extensions',
+                'redirect_uri' : 'https://localhost:8080',
+                'Authorization' : 'Bearer ovsqw55cpw3phtjg5ekmrradkmr98b',
 
             },
         })
             .then((response) => response.json())
             .then((user) => {
-                //console.log('Success:', user);
+                console.log('Success:', user);
 
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
@@ -234,13 +247,10 @@ window.onload = function() {
         chrome.tabs.create({url : link});
     }
 
-    //Function to clear data in chrome.storage api
+    //Function to get new oauth token
     const clear = document.getElementById("clearButton");
-    clear.addEventListener('click', clearStreamers);
+    clear.addEventListener('click', getOauthToken);
 
-    function clearStreamers() {
-
-    }
 
     //Get the followers of a twitch account
     function getFollowers(name) {
