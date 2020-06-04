@@ -11,10 +11,13 @@ window.onload = function() {
     // An API to get user follow
     const GET_URL_FOLLOW = "https://api.twitch.tv/kraken/users/<user ID>/follows/channels";
 
+    const MIXER_URL = "https://www.mixer.com/";
+    const TWITCH_URL = "https://www.twitch.com/";
+
     //Get the button to add streamer, and run streamSelected() on click
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
-
+    let tableRef = document.getElementById("onlineStreamersTable");
     let streamersArray = [ ];
 
 
@@ -29,30 +32,11 @@ window.onload = function() {
                 console.log(streamersArray);
             }
 
-            
-            let tableRef = document.getElementById("onlineStreamersTable");
-
-
-            //TODO: Getting user name to pass into api call to update table at startup
-            //Decide how to do so without busting API call limits
             let user = streamersArray.filter(item => item.username);
             for(i = 0; i < user.length; i++){
                 //console.log(user[i].username);
                 getStreamerMixer(user[i].username);
             }
-
-            /*
-            IDK WHAT THIS EVEN IS
-            result.streamersArray.forEach(function(result){
-                let row = tableRef.insertRow(1);
-                let statusCell = row.insertCell(0);
-                let nameCell = row.insertCell(1);
-                let viewerCell = row.insertCell(2);
-                statusCell.innerHTML = JSON.stringify(result.status);
-                nameCell.innerHTML = result.username;
-                viewerCell.innerHTML = result.viewers;
-            })
-            */
         });
     }
 
@@ -89,6 +73,8 @@ window.onload = function() {
         }
     }
 
+    
+
 
     //Function to get streamer data from Twitch's API
     /* Twitch seems to require that the client-id be in the Javascript Header Object, more info on those:
@@ -121,7 +107,7 @@ window.onload = function() {
                     //Check to see if user is already in the local streamersArray before adding
                     if(!userExists(obj.user_name)) {
                         console.log("User does not exist in array...");
-                        addStreamer(obj.type, obj.user_name, obj.viewer_count);
+                        addStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
 
                     } else if(userExists(obj.user_name)) {
                         updateStreamer(obj.type, obj.user_name, obj.viewer_count);
@@ -136,7 +122,7 @@ window.onload = function() {
 
                         } else {
                             // The data array doesn't exist yet, create it
-                            result.streamersArray = [{ status: obj.type, username: obj.user_name, viewers : obj.user_name }];
+                            result.streamersArray = [{ status: obj.type, username: obj.user_name, viewers : obj.user_name, url : TWITCH_URL + obj.user_name }];
                         }
 
                         // Now save the updated items using set
@@ -172,10 +158,10 @@ window.onload = function() {
                     //Check to see if user is already in the local streamersArray before adding
                     if(!userExists(user.token)) {
                         console.log("User does not exist in array...");
-                        addStreamer(user.online, user.token, user.viewersCurrent);
+                        addStreamer(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
 
                     } else if(userExists(user.token)) {
-                        updateStreamer(user.online, user.token, user.viewersCurrent);
+                        updateStreamer(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
                     }
 
                     chrome.storage.local.get(function(result) {
@@ -187,7 +173,7 @@ window.onload = function() {
 
                         } else {
                             // The data array doesn't exist yet, create it
-                            result.streamersArray = [{ status: user.online, username: user.token, viewers : user.viewersCurrent }];
+                            result.streamersArray = [{ status: user.online, username: user.token, viewers : user.viewersCurrent, url : MIXER_URL + user.token }];
                         }
 
                         // Now save the updated items using set
@@ -205,8 +191,8 @@ window.onload = function() {
             })
     }
     //Used to update table on startup, no need to push user to streamersArray, already exists
-    function updateStreamer(status, username, viewers) {
-        let tableRef = document.getElementById("onlineStreamersTable");
+    function updateStreamer(status, username, viewers, site) {
+        //let tableRef = document.getElementById("onlineStreamersTable");
         let row = tableRef.insertRow(1);
         let statusCell = row.insertCell(0);
         let rowCell = row.insertCell(1);
@@ -216,17 +202,17 @@ window.onload = function() {
         viewerCell.innerHTML = viewers;
     }
     //Used to add a new streamer to the table
-    function addStreamer(status, username, viewers) {
-        let tableRef = document.getElementById("onlineStreamersTable");
+    function addStreamer(status, username, viewers, site) {
+        //let tableRef = document.getElementById("onlineStreamersTable");
         let row = tableRef.insertRow(1);
         let statusCell = row.insertCell(0);
         let rowCell = row.insertCell(1);
         let viewerCell = row.insertCell(2);
-        statusCell.innerHTML = status;
+        statusCell.innerHTML = "Online";
         rowCell.innerHTML = username;
         viewerCell.innerHTML = viewers;
 
-        streamersArray.push({status: status, username: username, viewers: viewers});
+        streamersArray.push({status: status, username: username, viewers: viewers, url : site});
 
 
     }
@@ -241,6 +227,11 @@ window.onload = function() {
         chrome.storage.sync.get(function(result) {
             console.log(result);
         });
+    }
+
+    //Function used to open streamer's link in tab
+    function popOut(link) {
+        chrome.tabs.create({url : link});
     }
 
     //Function to clear data in chrome.storage api

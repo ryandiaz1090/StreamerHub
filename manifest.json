@@ -3,7 +3,7 @@
 	"version": "1.0",
 	"manifest_version": 2,
 	"description": "Chrome extension to track online streamers",
-	"permissions": ["alarms","declarativeContent","storage"],
+	"permissions": ["alarms","declarativeContent","storage", "tabs"],
 	"icons": { "16": "images/get_started16.png",
 			   "32": "images/get_started32.png",
 			   "48": "images/get_started48.png",

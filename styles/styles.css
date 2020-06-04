@@ -50,6 +50,10 @@ body {
     background: #eee;
 }
 
+a {
+    color : #ffffff;
+}
+
 h1 {
     font-weight: normal;
     letter-spacing: -1px;
