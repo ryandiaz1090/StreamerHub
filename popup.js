@@ -24,8 +24,6 @@ window.onload = function() {
 
 
     function buildTable() {
-        //Array of usernames for multiple users in 1 api call
-        let onlineStreamers = [];
         //Get streamers in background, push to table
         chrome.storage.sync.get(function(result) {
             console.log("Getting array of streamers at startup...\n");
@@ -39,10 +37,12 @@ window.onload = function() {
             let user = streamersArray.filter(item => item.username);
             for(i = 0; i < user.length; i++){
                 //console.log(user[i].username);
-                if(user[i].url === MIXER_URL+user[i].username)
+                if(user[i].url === MIXER_URL+user[i].username) {
                     getStreamerMixer(user[i].username);
-                else
+                }
+                else {
                     getStreamerTwitch(user[i].username);
+                }
             }
         });
     }
@@ -91,13 +91,7 @@ async function getOauthToken() {
         }
     }
 
-    
-
-
     //Function to get streamer data from Twitch's API
-    /* Twitch seems to require that the client-id be in the Javascript Header Object, more info on those:
-       https://developer.mozilla.org/en-US/docs/Web/API/Headers
-       https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch */
     async function getStreamerTwitch(user) {
         console.log("Calling twitch api for user: " + user);
 
