@@ -19,7 +19,7 @@ window.onload = function() {
     //Get the button to add streamer, and run streamSelected() on click
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
-    let tableRef = document.getElementById("onlineStreamersTable");
+    //let tableRef = document.getElementById("onlineStreamersTable");
     let streamersArray = [ ];
 
 
@@ -37,8 +37,10 @@ window.onload = function() {
             let user = streamersArray.filter(item => item.username);
             for(i = 0; i < user.length; i++){
                 //console.log(user[i].username);
-                getStreamerMixer(user[i].username);
-                getStreamerTwitch(user[i].username);
+                if(user[i].url === MIXER_URL+user[i].username)
+                    getStreamerMixer(user[i].username);
+                else
+                    getStreamerTwitch(user[i].username);
             }
         });
     }
@@ -205,7 +207,7 @@ async function getOauthToken() {
     }
     //Used to update table on startup, no need to push user to streamersArray, already exists
     function updateStreamer(status, username, viewers, site) {
-        //let tableRef = document.getElementById("onlineStreamersTable");
+        let tableRef = document.getElementById("onlineStreamersTable");
         let row = tableRef.insertRow(1);
         let statusCell = row.insertCell(0);
         let rowCell = row.insertCell(1);
@@ -216,7 +218,7 @@ async function getOauthToken() {
     }
     //Used to add a new streamer to the table
     function addStreamer(status, username, viewers, site) {
-        //let tableRef = document.getElementById("onlineStreamersTable");
+        let tableRef = document.getElementById("onlineStreamersTable");
         let row = tableRef.insertRow(1);
         let statusCell = row.insertCell(0);
         let rowCell = row.insertCell(1);
@@ -248,8 +250,8 @@ async function getOauthToken() {
     }
 
     //Function to get new oauth token
-    const clear = document.getElementById("clearButton");
-    clear.addEventListener('click', getOauthToken);
+    const tokenButton = document.getElementById("tokenButton");
+    tokenButton.addEventListener('click', getOauthToken);
 
 
     //Get the followers of a twitch account
