@@ -24,6 +24,8 @@ window.onload = function() {
 
 
     function buildTable() {
+        //Array of usernames for multiple users in 1 api call
+        let onlineStreamers = [];
         //Get streamers in background, push to table
         chrome.storage.sync.get(function(result) {
             console.log("Getting array of streamers at startup...\n");
@@ -111,7 +113,7 @@ async function getOauthToken() {
         })
             .then((response) => response.json())
             .then((user) => {
-                console.log('Success:', user);
+                //console.log('Success:', user);
 
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
@@ -125,7 +127,7 @@ async function getOauthToken() {
                         addStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
 
                     } else if(userExists(obj.user_name)) {
-                        updateStreamer(obj.type, obj.user_name, obj.viewer_count);
+                        updateStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
                     }
 
                     chrome.storage.local.get(function(result) {
@@ -228,8 +230,6 @@ async function getOauthToken() {
         viewerCell.innerHTML = viewers;
 
         streamersArray.push({status: status, username: username, viewers: viewers, url : site});
-
-
     }
 
     //Function to test if properly storing streamer data
