@@ -121,7 +121,7 @@ async function getOauthToken() {
                         addStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
 
                     } else if(userExists(obj.user_name)) {
-                        updateStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
+                        updateTable(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
                     }
 
                     chrome.storage.local.get(function(result) {
@@ -172,7 +172,7 @@ async function getOauthToken() {
                         addStreamer(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
 
                     } else if(userExists(user.token)) {
-                        updateStreamer(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
+                        updateTable(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
                     }
 
                     chrome.storage.local.get(function(result) {
@@ -201,20 +201,16 @@ async function getOauthToken() {
                 }
             })
     }
-    //Used to update table on startup, no need to push user to streamersArray, already exists
-    function updateStreamer(status, username, viewers, site) {
-        $(document).ready(function(){
-            $("#onlineStreamersTable").append(
-                "<tr>" +
-                "<td>Online</td>" +
-                "<td>" + username + "</td>" +
-                "<td>" + viewers + "</td></tr>"
-            );
-          });
 
-    }
     //Used to add a new streamer to the table
     function addStreamer(status, username, viewers, site) {
+        updateTable(status, username, viewers, site);
+
+        streamersArray.push({status: status, username: username, viewers: viewers, url : site});
+    }
+
+    //Function to update table
+    function updateTable(status, username, viewers, site) {
         $(document).ready(function(){
             $("#onlineStreamersTable").append(
                 "<tr>" +
@@ -223,8 +219,6 @@ async function getOauthToken() {
                 "<td>" + viewers + "</td></tr>"
             );
           });
-
-        streamersArray.push({status: status, username: username, viewers: viewers, url : site});
     }
 
     //Function to test if properly storing streamer data
