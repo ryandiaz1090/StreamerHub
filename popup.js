@@ -19,7 +19,7 @@ window.onload = function() {
     //Get the button to add streamer, and run streamSelected() on click
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
-    //let tableRef = document.getElementById("onlineStreamersTable");
+    let tableRef = document.getElementById("onlineStreamersTable");
     let streamersArray = [ ];
 
 
@@ -203,25 +203,26 @@ async function getOauthToken() {
     }
     //Used to update table on startup, no need to push user to streamersArray, already exists
     function updateStreamer(status, username, viewers, site) {
-        let tableRef = document.getElementById("onlineStreamersTable");
-        let row = tableRef.insertRow(1);
-        let statusCell = row.insertCell(0);
-        let rowCell = row.insertCell(1);
-        let viewerCell = row.insertCell(2);
-        statusCell.innerHTML = "Online";
-        rowCell.innerHTML = username;
-        viewerCell.innerHTML = viewers;
+        $(document).ready(function(){
+            $("#onlineStreamersTable").append(
+                "<tr>" +
+                "<td>Online</td>" +
+                "<td>" + username + "</td>" +
+                "<td>" + viewers + "</td></tr>"
+            );
+          });
+
     }
     //Used to add a new streamer to the table
     function addStreamer(status, username, viewers, site) {
-        let tableRef = document.getElementById("onlineStreamersTable");
-        let row = tableRef.insertRow(1);
-        let statusCell = row.insertCell(0);
-        let rowCell = row.insertCell(1);
-        let viewerCell = row.insertCell(2);
-        statusCell.innerHTML = "Online";
-        rowCell.innerHTML = username;
-        viewerCell.innerHTML = viewers;
+        $(document).ready(function(){
+            $("#onlineStreamersTable").append(
+                "<tr>" +
+                "<td>Online</td>" +
+                "<td>" + username + "</td>" +
+                "<td>" + viewers + "</td></tr>"
+            );
+          });
 
         streamersArray.push({status: status, username: username, viewers: viewers, url : site});
     }
@@ -246,23 +247,4 @@ async function getOauthToken() {
     //Function to get new oauth token
     const tokenButton = document.getElementById("tokenButton");
     tokenButton.addEventListener('click', getOauthToken);
-
-
-    //Get the followers of a twitch account
-    function getFollowers(name) {
-        return new Promise((resolve, reject) => {
-            request({GET_URL_FOLLOW, json: true}, (err, resp, body) => {
-                if (err == true) {
-                    reject(err)
-                }
-
-                const PEOPLE_FOLLOWERS = body.follows.map(follower => {
-                    return {id: follower.user.id, name: follower.user.name}
-                })
-                resolve(PEOPLE_FOLLOWERS)
-            })
-        })
-
-    }
-
 }
