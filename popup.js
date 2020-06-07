@@ -16,27 +16,23 @@ window.onload = function() {
     const MIXER_URL = "https://www.mixer.com/";
     const TWITCH_URL = "https://www.twitch.com/";
 
+    let oauthToken = ""
+
     //Get the button to add streamer, and run streamSelected() on click
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
-    let tableRef = document.getElementById("onlineStreamersTable");
     let streamersArray = [ ];
 
 
     function buildTable() {
         //Get streamers in background, push to table
         chrome.storage.sync.get(function(result) {
-            console.log("Getting array of streamers at startup...\n");
             if(Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
-                
-                console.log("Printing streamersArray after pushing data from storage...");
-                console.log(streamersArray);
             }
 
             let user = streamersArray.filter(item => item.username);
             for(i = 0; i < user.length; i++){
-                //console.log(user[i].username);
                 if(user[i].url === MIXER_URL+user[i].username) {
                     getStreamerMixer(user[i].username);
                 }
@@ -93,7 +89,6 @@ async function getOauthToken() {
 
     //Function to get streamer data from Twitch's API
     async function getStreamerTwitch(user) {
-        console.log("Calling twitch api for user: " + user);
 
         fetch(BASE_URL_TWITCH + user, {
             method: 'GET', // or 'PUT'
@@ -112,7 +107,7 @@ async function getOauthToken() {
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
                 if (obj === undefined) {
-                    console.log("Offline");
+                    //User is offline if undefined
                 } else {
                     
                     //Check to see if user is already in the local streamersArray before adding
@@ -127,8 +122,6 @@ async function getOauthToken() {
                     chrome.storage.local.get(function(result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
-                            //console.log("Printing local streamers array...\n");
-                            //console.log(streamersArray);
                             result.streamersArray = {streamersArray};
 
                         } else {
@@ -138,8 +131,6 @@ async function getOauthToken() {
 
                         // Now save the updated items using set
                         chrome.storage.sync.set({streamersArray}, function() {
-                            //console.log(result);
-                            //console.log('Data successfully saved to the storage!');
                         });
 
                     });
@@ -149,7 +140,6 @@ async function getOauthToken() {
 
     //Function to get streamer data from Mixer's API
     async function getStreamerMixer(user) {
-        console.log("Calling mixer api for user: " + user);
 
         fetch(BASE_URL_MIXER + user, {
             method: 'GET', // or 'PUT'
@@ -161,14 +151,13 @@ async function getOauthToken() {
         })
             .then((response) => response.json())
             .then((user) => {
-                //console.log('Success:', user);
 
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
 
                     //Check to see if user is already in the local streamersArray before adding
                     if(!userExists(user.token)) {
-                        console.log("User does not exist in array...");
+                        //User does not exist in array...
                         addStreamer(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
 
                     } else if(userExists(user.token)) {
@@ -178,8 +167,6 @@ async function getOauthToken() {
                     chrome.storage.local.get(function(result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
-                            //console.log("Printing local streamers array...\n");
-                            //console.log(streamersArray);
                             result.streamersArray = {streamersArray};
 
                         } else {
@@ -189,14 +176,13 @@ async function getOauthToken() {
 
                         // Now save the updated items using set
                         chrome.storage.sync.set({streamersArray}, function() {
-                            //console.log(result);
-                            //console.log('Data successfully saved to the storage!');
+                            //Data successfully saved to the storage!
                         });
 
                     });
 
                 } else {
-                    console.log(user.token + " is Offline"); 
+                    //User is offline
 
                 }
             })
