@@ -1,7 +1,7 @@
-window.onload = function() {
+window.onload = function () {
     const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
     //const BASE_URL_TWITCH = "https://id.twitch.tv/oauth2/authorize?";
-    
+
     //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "c6pext763cxzkkw9ox5e3map72jtd8";
 
@@ -16,24 +16,26 @@ window.onload = function() {
     const MIXER_URL = "https://www.mixer.com/";
     const TWITCH_URL = "https://www.twitch.com/";
 
-    let oauthToken = ""
+    let oauthToken;
 
     //Get the button to add streamer, and run streamSelected() on click
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
-    let streamersArray = [ ];
-
+    let streamersArray = [];
+    
+    //Get oauth token at beginning of session then build table
+    getOauthToken();
 
     function buildTable() {
         //Get streamers in background, push to table
-        chrome.storage.sync.get(function(result) {
-            if(Object.keys(result).length > 0) {
+        chrome.storage.sync.get(function (result) {
+            if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
             }
 
             let user = streamersArray.filter(item => item.username);
-            for(i = 0; i < user.length; i++){
-                if(user[i].url === MIXER_URL+user[i].username) {
+            for (i = 0; i < user.length; i++) {
+                if (user[i].url === MIXER_URL + user[i].username) {
                     getStreamerMixer(user[i].username);
                 }
                 else {
@@ -43,25 +45,42 @@ window.onload = function() {
         });
     }
 
-    buildTable();
-async function getOauthToken() {
-    const reponse = await fetch("https://id.twitch.tv/oauth2/token?client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET + "&grant_type=client_credentials", {
-        method : "POST",
 
-    })
-    .then((response) => response.json())
-    .then(data => {
-        console.log(data);
-    })
-}
+    //Function to get new oauth token
+    const tokenButton = document.getElementById("tokenButton");
+    tokenButton.addEventListener('click', getOauthToken);
+    async function getOauthToken(callback) {
+        const reponse = await fetch("https://id.twitch.tv/oauth2/token?client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET + "&grant_type=client_credentials", {
+            method: "POST",
+
+        })
+            .then((response) => response.json())
+            .then(data => {
+                oauthToken = data.access_token;
+                buildTable();
+
+            })
+    }
+
+    //Function to refresh existing token
+    async function refreshOauthToken() {
+        const reponse = await fetch("https://id.twitch.tv/oauth2/token--data-urlencode?grant_type=refresh_token&refresh_token="+"ovyi14126918nmgrfhqhw5t9jupl8v"+"&client_id="+CLIENT_ID_TWITCH+"&client_secret="+CLIENT_SECRET, {
+            method: "POST",
+
+        })
+            .then((response) => response.json())
+            .then(data => {
+                console.log(data);
+            })
+    }
 
 
     //Helper function to check if user exists in array
     function userExists(username) {
-        return streamersArray.some(function(el) {
-          return el.username === username;
-        }); 
-      }
+        return streamersArray.some(function (el) {
+            return el.username === username;
+        });
+    }
 
     //Helper function to get data in textbox
     function getName() {
@@ -95,8 +114,8 @@ async function getOauthToken() {
             headers: {
                 //'Content-Type': 'application/json',
                 'Client-ID': CLIENT_ID_TWITCH,
-                'redirect_uri' : 'https://localhost:8080',
-                'Authorization' : 'Bearer ovsqw55cpw3phtjg5ekmrradkmr98b',
+                'redirect_uri': 'https://localhost:8080',
+                'Authorization': 'Bearer ' + oauthToken,
 
             },
         })
@@ -109,28 +128,28 @@ async function getOauthToken() {
                 if (obj === undefined) {
                     //User is offline if undefined
                 } else {
-                    
+
                     //Check to see if user is already in the local streamersArray before adding
-                    if(!userExists(obj.user_name)) {
-                        console.log("User does not exist in array...");
+                    if (!userExists(obj.user_name)) {
+                        //console.log("User does not exist in array...");
                         addStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
 
-                    } else if(userExists(obj.user_name)) {
+                    } else if (userExists(obj.user_name)) {
                         updateTable(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
                     }
 
-                    chrome.storage.local.get(function(result) {
+                    chrome.storage.local.get(function (result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
-                            result.streamersArray = {streamersArray};
+                            result.streamersArray = { streamersArray };
 
                         } else {
                             // The data array doesn't exist yet, create it
-                            result.streamersArray = [{ status: obj.type, username: obj.user_name, viewers : obj.user_name, url : TWITCH_URL + obj.user_name }];
+                            result.streamersArray = [{ status: obj.type, username: obj.user_name, viewers: obj.user_name, url: TWITCH_URL + obj.user_name }];
                         }
 
                         // Now save the updated items using set
-                        chrome.storage.sync.set({streamersArray}, function() {
+                        chrome.storage.sync.set({ streamersArray }, function () {
                         });
 
                     });
@@ -145,7 +164,7 @@ async function getOauthToken() {
             method: 'GET', // or 'PUT'
             headers: {
                 'Content-Type': 'application/json',
-                
+
                 //'x-ratelimit-remaining': 'application/json',
             },
         })
@@ -156,26 +175,26 @@ async function getOauthToken() {
                 if (user.online === true) {
 
                     //Check to see if user is already in the local streamersArray before adding
-                    if(!userExists(user.token)) {
+                    if (!userExists(user.token)) {
                         //User does not exist in array...
                         addStreamer(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
 
-                    } else if(userExists(user.token)) {
+                    } else if (userExists(user.token)) {
                         updateTable(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
                     }
 
-                    chrome.storage.local.get(function(result) {
+                    chrome.storage.local.get(function (result) {
                         if (Object.keys(result).length > 0 && result.streamersArray) {
                             // The streamer array already exists, add to it the status, username, and viewers
-                            result.streamersArray = {streamersArray};
+                            result.streamersArray = { streamersArray };
 
                         } else {
                             // The data array doesn't exist yet, create it
-                            result.streamersArray = [{ status: user.online, username: user.token, viewers : user.viewersCurrent, url : MIXER_URL + user.token }];
+                            result.streamersArray = [{ status: user.online, username: user.token, viewers: user.viewersCurrent, url: MIXER_URL + user.token }];
                         }
 
                         // Now save the updated items using set
-                        chrome.storage.sync.set({streamersArray}, function() {
+                        chrome.storage.sync.set({ streamersArray }, function () {
                             //Data successfully saved to the storage!
                         });
 
@@ -192,39 +211,39 @@ async function getOauthToken() {
     function addStreamer(status, username, viewers, site) {
         updateTable(status, username, viewers, site);
 
-        streamersArray.push({status: status, username: username, viewers: viewers, url : site});
+        streamersArray.push({ status: status, username: username, viewers: viewers, url: site });
     }
 
     //Function to update table
     function updateTable(status, username, viewers, site) {
-        $(document).ready(function(){
+        $(document).ready(function () {
             $("#onlineStreamersTable").append(
                 "<tr>" +
                 "<td>Online</td>" +
-                "<td>" + username + "</td>" +
-                "<td>" + viewers + "</td></tr>"
+                "<td style='cursor:pointer' href='"+site+"'>" + username + "</td>" +
+                "<td>" + viewers + "</td>" +
+                "</tr>"
+                
             );
-          });
-    }
-
-    //Function to test if properly storing streamer data
-    const show = document.getElementById("showButton");
-    show.addEventListener('click', showStreamers);
-
-    function showStreamers() {
-
-        console.log("Showing streamers in storage array...\n");
-        chrome.storage.sync.get(function(result) {
-            console.log(result);
+            //$('#onlineStreamersTable').delegate('td', 'click', function() {
+            //    popOut($(this).attr("href"));
+                //popOut("#data-id");
+            //});
+            $("td").click(function() {
+                alert("Clicked...");
+                popOut($(this).attr("href"));
+                
+            }) 
         });
+        
     }
+
+    
 
     //Function used to open streamer's link in tab
     function popOut(link) {
-        chrome.tabs.create({url : link});
+        chrome.tabs.create({ url: link });
     }
 
-    //Function to get new oauth token
-    const tokenButton = document.getElementById("tokenButton");
-    tokenButton.addEventListener('click', getOauthToken);
+
 }
