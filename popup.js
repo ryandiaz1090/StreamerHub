@@ -31,6 +31,7 @@ window.onload = function () {
         chrome.storage.sync.get(function (result) {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
+                console.log(result);
             }
 
             let user = streamersArray.filter(item => item.username);
@@ -47,8 +48,8 @@ window.onload = function () {
 
 
     //Function to get new oauth token
-    const tokenButton = document.getElementById("tokenButton");
-    tokenButton.addEventListener('click', getOauthToken);
+    //const tokenButton = document.getElementById("tokenButton");
+    //tokenButton.addEventListener('click', getOauthToken);
     async function getOauthToken(callback) {
         const reponse = await fetch("https://id.twitch.tv/oauth2/token?client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET + "&grant_type=client_credentials", {
             method: "POST",
@@ -220,24 +221,45 @@ window.onload = function () {
             $("#onlineStreamersTable").append(
                 "<tr>" +
                 "<td>Online</td>" +
-                "<td style='cursor:pointer' href='"+site+"'>" + username + "</td>" +
+                "<td class='hasLink' style='cursor:pointer' href='"+site+"'>" + username + "</td>" +
                 "<td>" + viewers + "</td>" +
+                "<td class='delete' id='"+username+"' style='cursor:pointer'>Hide</td>"+
                 "</tr>"
                 
             );
-            //$('#onlineStreamersTable').delegate('td', 'click', function() {
-            //    popOut($(this).attr("href"));
-                //popOut("#data-id");
-            //});
-            $("td").click(function() {
-                alert("Clicked...");
-                popOut($(this).attr("href"));
-                
+
+            $("td").click(function(e) {
+                //Delete was clicked
+                if($(this).hasClass("delete")) {
+                    //Deletes row from table element
+                    $(this).closest("tr").remove();
+                }
+                else if($(this).hasClass("hasLink")) {
+                    //Username was clicked
+                    popOut($(this).attr("href"));
+                    e.cancelBubble();
+                }
             }) 
         });
         
     }
 
+    //Function to delete all background storage
+    const deleteStreamButton = document.getElementById("deleteStreamButton");
+    deleteStreamButton.addEventListener('click', deleteStreams);
+    function deleteStreams() {
+        for(i = 0; i < streamersArray.length; i++) {
+            $("td").remove();
+        }
+        //Clears all chrome storage data
+        chrome.storage.sync.clear(function() {
+            var error = chrome.runtime.lastError;
+            if (error) {
+                console.error(error);
+            }
+        });
+        
+    }
     
 
     //Function used to open streamer's link in tab
