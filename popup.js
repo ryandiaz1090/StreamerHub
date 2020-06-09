@@ -1,5 +1,6 @@
 window.onload = function () {
-    const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?";
+    const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
+    const BASE_URL_TWITCH_MULT = "https://api.twitch.tv/helix/streams?";
 
     //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "c6pext763cxzkkw9ox5e3map72jtd8";
@@ -17,14 +18,14 @@ window.onload = function () {
 
     let oauthToken;
 
-    //Get the button to add streamer, and run streamSelected() on click
+    //Get the button to add streamer to add new streamer
     const addStreamButton = document.getElementById("addStreamButton");
-    addStreamButton.addEventListener('click', streamSelected);
+    addStreamButton.addEventListener('click', addStreamClicked);
     let streamersArray = [];
     //Empty strings to pass users into api
     let tempStrTwitch = "";
     let tempStrMixer = "";
-    
+
     //Get oauth token at beginning of session then build table
     getOauthToken();
 
@@ -33,7 +34,6 @@ window.onload = function () {
         chrome.storage.sync.get(function (result) {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
-                console.log(result);
 
                 let user = streamersArray.filter(item => item.username);
                 let live = streamersArray.filter(item => item.status);
@@ -43,18 +43,16 @@ window.onload = function () {
                         getStreamerMixer(user[i].username);
                     }
                     else {
-                        tempStrTwitch+= "&user_login=" + live[i].username;
-                        //console.log(user);
-                        //getStreamerTwitch(user[i].username);
+                        tempStrTwitch += "&user_login=" + live[i].username;
+
                     }
                 }
-                console.log(tempStrMixer);
                 //getStreamerMixer(tempStrMixer)
-                if(tempStrTwitch.length > 0)
-                    getStreamerTwitch(tempStrTwitch);
+                if (tempStrTwitch.length > 0)
+                    getStreamerTwitch(BASE_URL_TWITCH_MULT + tempStrTwitch);
             }
 
-            
+
         });
     }
 
@@ -77,7 +75,7 @@ window.onload = function () {
 
     //Function to refresh existing token
     async function refreshOauthToken() {
-        const reponse = await fetch("https://id.twitch.tv/oauth2/token--data-urlencode?grant_type=refresh_token&refresh_token="+"ovyi14126918nmgrfhqhw5t9jupl8v"+"&client_id="+CLIENT_ID_TWITCH+"&client_secret="+CLIENT_SECRET, {
+        const reponse = await fetch("https://id.twitch.tv/oauth2/token--data-urlencode?grant_type=refresh_token&refresh_token=" + "ovyi14126918nmgrfhqhw5t9jupl8v" + "&client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET, {
             method: "POST",
 
         })
@@ -96,23 +94,23 @@ window.onload = function () {
     }
 
     //Helper function to get data in textbox
-    function getName() {
+    function getNameFromField() {
         const user = document.querySelector("#streamId").value;
         return user;
     }
 
 
-    function streamSelected() {
+    function addStreamClicked() {
         let ele = document.getElementsByName('website');
 
         for (i = 0; i < ele.length; i++) {
             if (ele[i].checked) {
                 switch (ele[i].value) {
                     case "twitch":
-                        getStreamerTwitch(getName());
+                        getStreamerTwitch(BASE_URL_TWITCH + getNameFromField());
                         return;
                     case "mixer":
-                        getStreamerMixer(getName());
+                        getStreamerMixer(getNameFromField());
                         return;
                 }
             }
@@ -122,7 +120,7 @@ window.onload = function () {
     //Function to get streamer data from Twitch's API
     async function getStreamerTwitch(user) {
 
-        fetch(BASE_URL_TWITCH + user, {
+        fetch(user, {
             method: 'GET', // or 'PUT'
             headers: {
                 //'Content-Type': 'application/json',
@@ -169,7 +167,7 @@ window.onload = function () {
                         });
 
                     });
-                    
+
                 }
             })
     }
@@ -187,7 +185,7 @@ window.onload = function () {
         })
             .then((response) => response.json())
             .then((user) => {
-                console.log(user);
+                //console.log(user);
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
 
@@ -232,52 +230,64 @@ window.onload = function () {
         streamersArray.push({ status: status, username: username, viewers: viewers, url: site });
     }
 
+    //Images for the table
+    let imgTwitch = "<img src='images/twitch16.png'/>"
+    let imgMixer = "<img src='images/mixer16.png'/>"
     //Function to update table
     function updateTable(status, username, viewers, site) {
+        let img = "";
+        if(site == MIXER_URL + username)
+            img = imgMixer;
+        else
+            img = imgTwitch;
+
+        console.log(site);
         $(document).ready(function () {
             $("#onlineStreamersTable").append(
                 "<tr>" +
-                "<td>Online</td>" +
-                "<td class='hasLink' style='cursor:pointer' href='"+site+"'>" + username + "</td>" +
+                "<td>"+img+"</td>" +
+                "<td class='hasLink' style='cursor:pointer' href='" + site + "'>" + username + "</td>" +
                 "<td>" + viewers + "</td>" +
-                "<td class='delete' id='"+username+"' style='cursor:pointer'>Hide</td>"+
+                "<td class='delete' id='" + username + "' style='cursor:pointer'>Hide</td>" +
                 "</tr>"
-                
+
             );
 
-            $("td").click(function(e) {
+            $("td").click(function (e) {
                 //Delete was clicked
-                if($(this).hasClass("delete")) {
+                if ($(this).hasClass("delete")) {
                     //Deletes row from table element
                     $(this).closest("tr").remove();
                 }
-                else if($(this).hasClass("hasLink")) {
+                else if ($(this).hasClass("hasLink")) {
                     //Username was clicked
                     popOut($(this).attr("href"));
                     e.cancelBubble();
                 }
-            }) 
+            })
         });
-        
+
     }
 
     //Function to delete all background storage
     const deleteStreamButton = document.getElementById("deleteStreamButton");
     deleteStreamButton.addEventListener('click', deleteStreams);
     function deleteStreams() {
-        for(i = 0; i < streamersArray.length; i++) {
-            $("td").remove();
-        }
-        //Clears all chrome storage data
-        chrome.storage.sync.clear(function() {
-            var error = chrome.runtime.lastError;
-            if (error) {
-                console.error(error);
+        let result = confirm("Are you sure you want to delete?");
+        if (result) {
+            for (i = 0; i < streamersArray.length; i++) {
+                $("td").remove();
             }
-        });
-        
+            //Clears all chrome storage data
+            chrome.storage.sync.clear(function () {
+                var error = chrome.runtime.lastError;
+                if (error) {
+                    console.error(error);
+                }
+            });
+        }
     }
-    
+
 
     //Function used to open streamer's link in tab
     function popOut(link) {
