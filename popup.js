@@ -138,7 +138,7 @@ window.onload = function () {
                 const obj = user.data[0];
                 if (obj === undefined) {
                     //User is offline if undefined
-                    alert("Please ensure streamer is online before adding..");
+                    //alert("Please ensure streamer is online before adding..");
                 } else {
 
                     //Check to see if user is already in the local streamersArray before adding
@@ -217,7 +217,7 @@ window.onload = function () {
 
                 } else {
                     //User is offline
-                    alert("Please ensure streamer is online before adding..");
+                    //alert("Please ensure streamer is online before adding..");
 
                 }
             })
@@ -241,7 +241,6 @@ window.onload = function () {
         else
             img = imgTwitch;
 
-        console.log(site);
         $(document).ready(function () {
             $("#onlineStreamersTable").append(
                 "<tr>" +
