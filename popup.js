@@ -1,6 +1,5 @@
 window.onload = function () {
-    const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?user_login=";
-    //const BASE_URL_TWITCH = "https://id.twitch.tv/oauth2/authorize?";
+    const BASE_URL_TWITCH = "https://api.twitch.tv/helix/streams?";
 
     //Our API Key/client id for twitch.tv
     const CLIENT_ID_TWITCH = "c6pext763cxzkkw9ox5e3map72jtd8";
@@ -22,6 +21,9 @@ window.onload = function () {
     const addStreamButton = document.getElementById("addStreamButton");
     addStreamButton.addEventListener('click', streamSelected);
     let streamersArray = [];
+    //Empty strings to pass users into api
+    let tempStrTwitch = "";
+    let tempStrMixer = "";
     
     //Get oauth token at beginning of session then build table
     getOauthToken();
@@ -32,17 +34,27 @@ window.onload = function () {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
                 console.log(result);
+
+                let user = streamersArray.filter(item => item.username);
+                let live = streamersArray.filter(item => item.status);
+                for (i = 0; i < live.length; i++) {
+                    if (live[i].url === MIXER_URL + live[i].username) {
+                        //tempStrMixer+=live[i].username + "&";
+                        getStreamerMixer(user[i].username);
+                    }
+                    else {
+                        tempStrTwitch+= "&user_login=" + live[i].username;
+                        //console.log(user);
+                        //getStreamerTwitch(user[i].username);
+                    }
+                }
+                console.log(tempStrMixer);
+                //getStreamerMixer(tempStrMixer)
+                if(tempStrTwitch.length > 0)
+                    getStreamerTwitch(tempStrTwitch);
             }
 
-            let user = streamersArray.filter(item => item.username);
-            for (i = 0; i < user.length; i++) {
-                if (user[i].url === MIXER_URL + user[i].username) {
-                    getStreamerMixer(user[i].username);
-                }
-                else {
-                    getStreamerTwitch(user[i].username);
-                }
-            }
+            
         });
     }
 
@@ -122,12 +134,13 @@ window.onload = function () {
         })
             .then((response) => response.json())
             .then((user) => {
-                //console.log('Success:', user);
+                console.log('Success:', user);
 
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
                 if (obj === undefined) {
                     //User is offline if undefined
+                    alert("Please ensure streamer is online before adding..");
                 } else {
 
                     //Check to see if user is already in the local streamersArray before adding
@@ -136,7 +149,9 @@ window.onload = function () {
                         addStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
 
                     } else if (userExists(obj.user_name)) {
-                        updateTable(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
+                        //Add all online users
+                        user.data.forEach(element => updateTable(element.type, element.user_name, element.viewer_count, TWITCH_URL + element.user_name));
+                        //updateTable(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
                     }
 
                     chrome.storage.local.get(function (result) {
@@ -154,6 +169,7 @@ window.onload = function () {
                         });
 
                     });
+                    
                 }
             })
     }
@@ -171,7 +187,7 @@ window.onload = function () {
         })
             .then((response) => response.json())
             .then((user) => {
-
+                console.log(user);
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
 
@@ -203,6 +219,7 @@ window.onload = function () {
 
                 } else {
                     //User is offline
+                    alert("Please ensure streamer is online before adding..");
 
                 }
             })

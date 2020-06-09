@@ -4,10 +4,9 @@
 	"manifest_version": 2,
 	"description": "Chrome extension to track online streamers",
 	"permissions": ["alarms","declarativeContent","storage", "tabs"],
-	"icons": { "16": "images/get_started16.png",
-			   "32": "images/get_started32.png",
-			   "48": "images/get_started48.png",
-			   "128": "images/get_started128.png"
+	"icons": { "16": "images/16x16.png",
+			   "48": "images/48x48.png",
+			   "128": "images/128x128.png"
 			},
 	"background": {
 		"scripts": ["background.js"],
@@ -20,7 +19,7 @@
 		}
 	],
 	"browser_action": {
-        "default_icon": "images/get_started16.png",
+        "default_icon": "images/babo.png",
         "default_popup": "popup.html",
         "default_title": "StreamHub"
     }
