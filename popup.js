@@ -52,6 +52,7 @@ window.onload = function () {
                 streamersArray = result.streamersArray;
 
                 console.log(streamersArray);
+
                 //Only show streamers that are online
                 let live = streamersArray.filter(item => item.status);
                 for (i = 0; i < live.length; i++) {
@@ -60,7 +61,7 @@ window.onload = function () {
                         getStreamerMixer(live[i].username);
                     }
                     else {
-                        tempStrTwitch += "&user_id=" + live[i].userid;
+                        tempStrTwitch += "&user_login=" + live[i].username;
 
                     }
                 }
@@ -160,7 +161,7 @@ window.onload = function () {
                 return response.json()
             })
             .then((user) => {
-                //console.log(user);
+                console.log(user);
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
 
@@ -177,8 +178,12 @@ window.onload = function () {
 
                 } else {
                     //User is offline
-                    //alert("Please ensure streamer is online before adding..");
 
+                    if (!userExists(user.token)) {
+                        addStreamer("live", user.token, user.token, "offline", MIXER_URL + user.token);
+
+                        saveToChromeStorage(user.online, user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
+                    }
                 }
             })
     }
