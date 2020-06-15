@@ -3,7 +3,8 @@
 	"version": "1.0",
 	"manifest_version": 2,
 	"description": "Chrome extension to track online streamers",
-	"permissions": ["storage", "tabs"],
+	"permissions": [ "storage"
+	],
 	"icons": { "16": "images/16x16.png",
 			   "48": "images/48x48.png",
 			   "128": "images/128x128.png"
@@ -14,7 +15,10 @@
 	},
 	"content_scripts": [
 		{
-			"matches": ["<all_urls>"],
+			"matches" : [ "https://api.twitch.tv/helix/*",
+				"https://mixer.com/api/v1/channels/",
+				"https://id.twitch.tv/oauth2/token?client_id="
+			],
 			"js": ["popup.js"]
 		}
 	],

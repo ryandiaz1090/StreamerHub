@@ -96,6 +96,8 @@ window.onload = function () {
     //Helper function to get data in textbox
     function getNameFromField() {
         const user = document.querySelector("#streamId").value;
+        if(user === "") return alert("Please enter a streamer");
+        if(userExists(user)) return alert("You are already following " + user);
         return user;
     }
 
@@ -138,7 +140,7 @@ window.onload = function () {
                 const obj = user.data[0];
                 if (obj === undefined) {
                     //User is offline if undefined
-                    //alert("Please ensure streamer is online before adding..");
+                    alert("Please ensure streamer is online before adding..");
                 } else {
 
                     //Check to see if user is already in the local streamersArray before adding
@@ -217,7 +219,7 @@ window.onload = function () {
 
                 } else {
                     //User is offline
-                    //alert("Please ensure streamer is online before adding..");
+                    alert("Please ensure streamer is online before adding..");
 
                 }
             })
