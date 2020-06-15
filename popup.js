@@ -51,11 +51,11 @@ window.onload = function () {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
 
-                console.log(streamersArray);
+                //console.log(streamersArray);
 
                 //Only show streamers that are online
                 let live = streamersArray.filter(item => item.status);
-                console.log(live);
+                //console.log(live);
                 for (i = 0; i < live.length; i++) {
                     console.log(live[i].url);
                     console.log(live[i].username);
@@ -114,7 +114,7 @@ window.onload = function () {
                 return response.json()
             })
             .then((user) => {
-                console.log('Success:', user);
+                //console.log('Success:', user);
 
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
