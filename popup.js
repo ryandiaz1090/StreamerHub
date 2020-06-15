@@ -51,13 +51,17 @@ window.onload = function () {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
 
-                //console.log(streamersArray);
+                console.log(streamersArray);
 
                 //Only show streamers that are online
                 let live = streamersArray.filter(item => item.status);
+                console.log(live);
                 for (i = 0; i < live.length; i++) {
+                    console.log(live[i].url);
+                    console.log(live[i].username);
                     if (live[i].url === MIXER_URL + live[i].username) {
                         //tempStrMixer+=live[i].username + "&";
+                        console.log("Getting streamer "+ live[i].username);
                         getStreamerMixer(live[i].username);
                     }
                     else  {
@@ -110,19 +114,21 @@ window.onload = function () {
                 return response.json()
             })
             .then((user) => {
-                //console.log('Success:', user);
+                console.log('Success:', user);
 
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
                 if (obj === undefined) {
                     //User is offline if undefined
-                    let temp_name = getNameFromField();
-
-                    if (!userExists(temp_name)) {
-                        addStreamer("live", temp_name, temp_name, "offline", TWITCH_URL + temp_name);
-
-                        saveToChromeStorage("live", temp_name, temp_name, 0, TWITCH_URL + temp_name);
+                    if(getNameFromField()) {
+                        let temp_name = getNameFromField();
+                        if (!userExists(temp_name)) {
+                            addStreamer("live", temp_name, temp_name, "offline", TWITCH_URL + temp_name);
+    
+                            saveToChromeStorage("live", temp_name, temp_name, 0, TWITCH_URL + temp_name);
+                        }
                     }
+                                       
                     //alert("Please ensure streamer is online before adding..");
                 } else {
 
@@ -180,9 +186,9 @@ window.onload = function () {
                     //User is offline
 
                     if (!userExists(user.token)) {
-                        addStreamer(user.online, user.token, user.token, "offline", MIXER_URL + user.token);
+                        addStreamer("live", user.token, user.token, "offline", MIXER_URL + user.token);
 
-                        saveToChromeStorage(user.online, user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
+                        saveToChromeStorage("live", user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
                     }
                 }
             })
@@ -300,6 +306,7 @@ window.onload = function () {
     function getNameFromField() {
         const user = document.querySelector("#streamId").value;
         if (userExists(user)) return alert("You are already following " + user);
+        if(user === "") return false;
         return user;
     }
 
