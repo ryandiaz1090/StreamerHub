@@ -35,15 +35,16 @@ window.onload = function () {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
 
-                let user = streamersArray.filter(item => item.username);
+                console.log(streamersArray);
+                //Only show streamers that are online
                 let live = streamersArray.filter(item => item.status);
                 for (i = 0; i < live.length; i++) {
                     if (live[i].url === MIXER_URL + live[i].username) {
                         //tempStrMixer+=live[i].username + "&";
-                        getStreamerMixer(user[i].username);
+                        getStreamerMixer(live[i].username);
                     }
                     else {
-                        tempStrTwitch += "&user_login=" + live[i].username;
+                        tempStrTwitch += "&user_id=" + live[i].userid;
 
                     }
                 }
@@ -132,21 +133,31 @@ window.onload = function () {
 
             },
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if(response.status === 429) alert("There are too many requests, please try in 1 minute");
+                return response.json() 
+            })
             .then((user) => {
-                console.log('Success:', user);
+                //console.log('Success:', user);
 
                 //Placing JSON array object into obj for better readability later
                 const obj = user.data[0];
                 if (obj === undefined) {
                     //User is offline if undefined
-                    alert("Please ensure streamer is online before adding..");
+                    let temp_name = getNameFromField();
+
+                    if(!userExists(temp_name)) {
+                        addStreamer("live", temp_name, temp_name, "offline", TWITCH_URL + temp_name);
+
+                        saveToChromeStorage("live", temp_name, temp_name, 0, TWITCH_URL + temp_name);                        
+                    }
+                    //alert("Please ensure streamer is online before adding..");
                 } else {
 
                     //Check to see if user is already in the local streamersArray before adding
                     if (!userExists(obj.user_name)) {
                         //console.log("User does not exist in array...");
-                        addStreamer(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
+                        addStreamer(obj.type, obj.user_name, obj.user_id, obj.viewer_count, TWITCH_URL + obj.user_name);
 
                     } else if (userExists(obj.user_name)) {
                         //Add all online users
@@ -154,21 +165,9 @@ window.onload = function () {
                         //updateTable(obj.type, obj.user_name, obj.viewer_count, TWITCH_URL + obj.user_name);
                     }
 
-                    chrome.storage.local.get(function (result) {
-                        if (Object.keys(result).length > 0 && result.streamersArray) {
-                            // The streamer array already exists, add to it the status, username, and viewers
-                            result.streamersArray = { streamersArray };
+                    saveToChromeStorage(obj.type, obj.user_name, obj.user_id, obj.viewer_count, TWITCH_URL + obj.user_name)
 
-                        } else {
-                            // The data array doesn't exist yet, create it
-                            result.streamersArray = [{ status: obj.type, username: obj.user_name, viewers: obj.user_name, url: TWITCH_URL + obj.user_name }];
-                        }
 
-                        // Now save the updated items using set
-                        chrome.storage.sync.set({ streamersArray }, function () {
-                        });
-
-                    });
 
                 }
             })
@@ -185,7 +184,10 @@ window.onload = function () {
                 //'x-ratelimit-remaining': 'application/json',
             },
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if(response.status === 429) alert("There are too many requests, please try in 1 minute");
+                return response.json() 
+            })
             .then((user) => {
                 //console.log(user);
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
@@ -194,42 +196,27 @@ window.onload = function () {
                     //Check to see if user is already in the local streamersArray before adding
                     if (!userExists(user.token)) {
                         //User does not exist in array...
-                        addStreamer(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
+                        addStreamer(user.online, user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
 
                     } else if (userExists(user.token)) {
                         updateTable(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
                     }
 
-                    chrome.storage.local.get(function (result) {
-                        if (Object.keys(result).length > 0 && result.streamersArray) {
-                            // The streamer array already exists, add to it the status, username, and viewers
-                            result.streamersArray = { streamersArray };
-
-                        } else {
-                            // The data array doesn't exist yet, create it
-                            result.streamersArray = [{ status: user.online, username: user.token, viewers: user.viewersCurrent, url: MIXER_URL + user.token }];
-                        }
-
-                        // Now save the updated items using set
-                        chrome.storage.sync.set({ streamersArray }, function () {
-                            //Data successfully saved to the storage!
-                        });
-
-                    });
+                    saveToChromeStorage(user.online, user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
 
                 } else {
                     //User is offline
-                    alert("Please ensure streamer is online before adding..");
+                    //alert("Please ensure streamer is online before adding..");
 
                 }
             })
     }
 
     //Used to add a new streamer to the table
-    function addStreamer(status, username, viewers, site) {
+    function addStreamer(status, username, userid, viewers, site) {
         updateTable(status, username, viewers, site);
 
-        streamersArray.push({ status: status, username: username, viewers: viewers, url: site });
+        streamersArray.push({ status: status, username: username, userid: userid, viewers: viewers, url: site });
     }
 
     //Images for the table
@@ -287,6 +274,24 @@ window.onload = function () {
                 }
             });
         }
+    }
+
+    //Function to save to chrome storage api
+    function saveToChromeStorage(status, username, userid, viewers, url) {
+        chrome.storage.local.get(function (result) {
+            if (Object.keys(result).length > 0 && result.streamersArray) {
+                // The streamer array already exists, add to it the status, username, and viewers
+                result.streamersArray = { streamersArray };
+
+            } else {
+                // The data array doesn't exist yet, create it
+                result.streamersArray = [{ status: status, username: username, userid: userid, viewers: viewers, url: url }];
+            }
+
+            // Now save the updated items using set
+            chrome.storage.sync.set({ streamersArray }, function () {
+            });
+        })
     }
 
 

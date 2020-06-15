@@ -15,9 +15,8 @@
 	},
 	"content_scripts": [
 		{
-			"matches" : [ "https://api.twitch.tv/helix/*",
-				"https://mixer.com/api/v1/channels/",
-				"https://id.twitch.tv/oauth2/token?client_id="
+			"matches" : [ "https://*.twitch.tv/*",
+				"https://mixer.com/api/v1/channels/"
 			],
 			"js": ["popup.js"]
 		}
