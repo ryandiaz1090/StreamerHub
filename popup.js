@@ -24,7 +24,7 @@ window.onload = function () {
     let streamersArray = [];
     //Empty strings to pass users into api
     let tempStrTwitch = "";
-    let tempStrMixer = "";
+    let tempStrMixer;
 
     //Get oauth token at beginning of session then build table
     getOauthToken();
@@ -60,13 +60,13 @@ window.onload = function () {
                         //tempStrMixer+=live[i].username + "&";
                         getStreamerMixer(live[i].username);
                     }
-                    else {
+                    else  {
                         tempStrTwitch += "&user_login=" + live[i].username;
 
                     }
                 }
                 //getStreamerMixer(tempStrMixer)
-                if (tempStrTwitch.length > 0)
+                if (tempStrTwitch.length > 0 )
                     getStreamerTwitch(BASE_URL_TWITCH_MULT + tempStrTwitch);
             }
 
@@ -161,7 +161,7 @@ window.onload = function () {
                 return response.json()
             })
             .then((user) => {
-                console.log(user);
+                //console.log(user);
                 //User is already a parsed JSON object, can access data directly and check if user.online === true
                 if (user.online === true) {
 
@@ -180,7 +180,7 @@ window.onload = function () {
                     //User is offline
 
                     if (!userExists(user.token)) {
-                        addStreamer("live", user.token, user.token, "offline", MIXER_URL + user.token);
+                        addStreamer(user.online, user.token, user.token, "offline", MIXER_URL + user.token);
 
                         saveToChromeStorage(user.online, user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
                     }
@@ -299,7 +299,6 @@ window.onload = function () {
     //Helper function to get data in textbox
     function getNameFromField() {
         const user = document.querySelector("#streamId").value;
-        if (user === "") return alert("Please enter a streamer");
         if (userExists(user)) return alert("You are already following " + user);
         return user;
     }
