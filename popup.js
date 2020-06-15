@@ -29,6 +29,22 @@ window.onload = function () {
     //Get oauth token at beginning of session then build table
     getOauthToken();
 
+    //Function to get new oauth token
+    //const tokenButton = document.getElementById("tokenButton");
+    //tokenButton.addEventListener('click', getOauthToken);
+    async function getOauthToken(callback) {
+        const reponse = await fetch("https://id.twitch.tv/oauth2/token?client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET + "&grant_type=client_credentials", {
+            method: "POST",
+
+        })
+            .then((response) => response.json())
+            .then(data => {
+                oauthToken = data.access_token;
+                buildTable();
+
+            })
+    }
+
     function buildTable() {
         //Get streamers in background, push to table
         chrome.storage.sync.get(function (result) {
@@ -55,51 +71,6 @@ window.onload = function () {
 
 
         });
-    }
-
-
-    //Function to get new oauth token
-    //const tokenButton = document.getElementById("tokenButton");
-    //tokenButton.addEventListener('click', getOauthToken);
-    async function getOauthToken(callback) {
-        const reponse = await fetch("https://id.twitch.tv/oauth2/token?client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET + "&grant_type=client_credentials", {
-            method: "POST",
-
-        })
-            .then((response) => response.json())
-            .then(data => {
-                oauthToken = data.access_token;
-                buildTable();
-
-            })
-    }
-
-    //Function to refresh existing token
-    async function refreshOauthToken() {
-        const reponse = await fetch("https://id.twitch.tv/oauth2/token--data-urlencode?grant_type=refresh_token&refresh_token=" + "ovyi14126918nmgrfhqhw5t9jupl8v" + "&client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET, {
-            method: "POST",
-
-        })
-            .then((response) => response.json())
-            .then(data => {
-                console.log(data);
-            })
-    }
-
-
-    //Helper function to check if user exists in array
-    function userExists(username) {
-        return streamersArray.some(function (el) {
-            return el.username === username;
-        });
-    }
-
-    //Helper function to get data in textbox
-    function getNameFromField() {
-        const user = document.querySelector("#streamId").value;
-        if(user === "") return alert("Please enter a streamer");
-        if(userExists(user)) return alert("You are already following " + user);
-        return user;
     }
 
 
@@ -134,8 +105,8 @@ window.onload = function () {
             },
         })
             .then((response) => {
-                if(response.status === 429) alert("There are too many requests, please try in 1 minute");
-                return response.json() 
+                if (response.status === 429) alert("There are too many requests, please try in 1 minute");
+                return response.json()
             })
             .then((user) => {
                 //console.log('Success:', user);
@@ -146,10 +117,10 @@ window.onload = function () {
                     //User is offline if undefined
                     let temp_name = getNameFromField();
 
-                    if(!userExists(temp_name)) {
+                    if (!userExists(temp_name)) {
                         addStreamer("live", temp_name, temp_name, "offline", TWITCH_URL + temp_name);
 
-                        saveToChromeStorage("live", temp_name, temp_name, 0, TWITCH_URL + temp_name);                        
+                        saveToChromeStorage("live", temp_name, temp_name, 0, TWITCH_URL + temp_name);
                     }
                     //alert("Please ensure streamer is online before adding..");
                 } else {
@@ -185,8 +156,8 @@ window.onload = function () {
             },
         })
             .then((response) => {
-                if(response.status === 429) alert("There are too many requests, please try in 1 minute");
-                return response.json() 
+                if (response.status === 429) alert("There are too many requests, please try in 1 minute");
+                return response.json()
             })
             .then((user) => {
                 //console.log(user);
@@ -225,7 +196,7 @@ window.onload = function () {
     //Function to update table
     function updateTable(status, username, viewers, site) {
         let img = "";
-        if(site == MIXER_URL + username)
+        if (site == MIXER_URL + username)
             img = imgMixer;
         else
             img = imgTwitch;
@@ -233,7 +204,7 @@ window.onload = function () {
         $(document).ready(function () {
             $("#onlineStreamersTable").append(
                 "<tr>" +
-                "<td>"+img+"</td>" +
+                "<td>" + img + "</td>" +
                 "<td class='hasLink' style='cursor:pointer' href='" + site + "'>" + username + "</td>" +
                 "<td>" + viewers + "</td>" +
                 "<td class='delete' id='" + username + "' style='cursor:pointer'>Hide</td>" +
@@ -298,6 +269,34 @@ window.onload = function () {
     //Function used to open streamer's link in tab
     function popOut(link) {
         chrome.tabs.create({ url: link });
+    }
+
+    //Function to refresh existing token
+    async function refreshOauthToken() {
+        const reponse = await fetch("https://id.twitch.tv/oauth2/token--data-urlencode?grant_type=refresh_token&refresh_token=" + "ovyi14126918nmgrfhqhw5t9jupl8v" + "&client_id=" + CLIENT_ID_TWITCH + "&client_secret=" + CLIENT_SECRET, {
+            method: "POST",
+
+        })
+            .then((response) => response.json())
+            .then(data => {
+                console.log(data);
+            })
+    }
+
+
+    //Helper function to check if user exists in array
+    function userExists(username) {
+        return streamersArray.some(function (el) {
+            return el.username === username;
+        });
+    }
+
+    //Helper function to get data in textbox
+    function getNameFromField() {
+        const user = document.querySelector("#streamId").value;
+        if (user === "") return alert("Please enter a streamer");
+        if (userExists(user)) return alert("You are already following " + user);
+        return user;
     }
 
 
