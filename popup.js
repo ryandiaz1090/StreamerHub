@@ -51,7 +51,7 @@ window.onload = function () {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
 
-                console.log(streamersArray);
+                //console.log(streamersArray);
 
                 //Only show streamers that are online
                 let live = streamersArray.filter(item => item.status);
