@@ -57,15 +57,16 @@ window.onload = function () {
                 let live = streamersArray.filter(item => item.status);
                 //console.log(live);
                 for (i = 0; i < live.length; i++) {
-                    console.log(live[i].url);
-                    console.log(live[i].username);
+                    //console.log(live[i].url);
+                    //console.log(live[i].username);
+                    //console.log(live[i].userid);
                     if (live[i].url === MIXER_URL + live[i].username) {
                         //tempStrMixer+=live[i].username + "&";
                         console.log("Getting streamer "+ live[i].username);
                         getStreamerMixer(live[i].username);
                     }
                     else  {
-                        tempStrTwitch += "&user_login=" + live[i].username;
+                        tempStrTwitch += "&user_id=" + live[i].userid;
 
                     }
                 }
