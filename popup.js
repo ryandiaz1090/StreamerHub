@@ -24,7 +24,7 @@ window.onload = function () {
     let streamersArray = [];
     //Empty strings to pass users into api
     let tempStrTwitch = "";
-    let tempStrMixer;
+    //let tempStrMixer;
 
     //Get oauth token at beginning of session then build table
     getOauthToken();
