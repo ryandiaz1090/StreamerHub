@@ -24,7 +24,6 @@ window.onload = function () {
     let streamersArray = [];
     //Empty strings to pass users into api
     let tempStrTwitch = "";
-    //let tempStrMixer;
 
     //Get oauth token at beginning of session then build table
     getOauthToken();
@@ -51,7 +50,7 @@ window.onload = function () {
             if (Object.keys(result).length > 0) {
                 streamersArray = result.streamersArray;
 
-                //console.log(streamersArray);
+                console.log(streamersArray);
 
                 //Only show streamers that are online
                 let live = streamersArray.filter(item => item.status);
@@ -62,16 +61,16 @@ window.onload = function () {
                     //console.log(live[i].userid);
                     if (live[i].url === MIXER_URL + live[i].username) {
                         //tempStrMixer+=live[i].username + "&";
-                        console.log("Getting streamer "+ live[i].username);
+                        console.log("Getting streamer " + live[i].username);
                         getStreamerMixer(live[i].username);
                     }
-                    else  {
+                    else {
                         tempStrTwitch += "&user_id=" + live[i].userid;
 
                     }
                 }
                 //getStreamerMixer(tempStrMixer)
-                if (tempStrTwitch.length > 0 )
+                if (tempStrTwitch.length > 0)
                     getStreamerTwitch(BASE_URL_TWITCH_MULT + tempStrTwitch);
             }
 
@@ -121,15 +120,15 @@ window.onload = function () {
                 const obj = user.data[0];
                 if (obj === undefined) {
                     //User is offline if undefined
-                    if(getNameFromField()) {
+                    if (getNameFromField()) {
                         let temp_name = getNameFromField();
                         if (!userExists(temp_name)) {
                             addStreamer("live", temp_name, temp_name, "offline", TWITCH_URL + temp_name);
-    
+
                             saveToChromeStorage("live", temp_name, temp_name, 0, TWITCH_URL + temp_name);
                         }
                     }
-                                       
+
                     //alert("Please ensure streamer is online before adding..");
                 } else {
 
@@ -152,48 +151,6 @@ window.onload = function () {
             })
     }
 
-    //Function to get streamer data from Mixer's API
-    async function getStreamerMixer(user) {
-
-        fetch(BASE_URL_MIXER + user, {
-            method: 'GET', // or 'PUT'
-            headers: {
-                'Content-Type': 'application/json',
-
-                //'x-ratelimit-remaining': 'application/json',
-            },
-        })
-            .then((response) => {
-                if (response.status === 429) alert("There are too many requests, please try in 1 minute");
-                return response.json()
-            })
-            .then((user) => {
-                //console.log(user);
-                //User is already a parsed JSON object, can access data directly and check if user.online === true
-                if (user.online === true) {
-
-                    //Check to see if user is already in the local streamersArray before adding
-                    if (!userExists(user.token)) {
-                        //User does not exist in array...
-                        addStreamer(user.online, user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
-
-                    } else if (userExists(user.token)) {
-                        updateTable(user.online, user.token, user.viewersCurrent, MIXER_URL + user.token);
-                    }
-
-                    saveToChromeStorage(user.online, user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
-
-                } else {
-                    //User is offline
-
-                    if (!userExists(user.token)) {
-                        addStreamer("live", user.token, user.token, "offline", MIXER_URL + user.token);
-
-                        saveToChromeStorage("live", user.token, user.userId, user.viewersCurrent, MIXER_URL + user.token);
-                    }
-                }
-            })
-    }
 
     //Used to add a new streamer to the table
     function addStreamer(status, username, userid, viewers, site) {
@@ -202,16 +159,32 @@ window.onload = function () {
         streamersArray.push({ status: status, username: username, userid: userid, viewers: viewers, url: site });
     }
 
+    //Used to delete a single streamer
+    function deleteStreamer(name) {
+        if (userExists(name)) {
+            chrome.storage.sync.get(function (result) {
+                if (Object.keys(result).length > 0) {
+                    streamersArray = result.streamersArray;
+
+                    //console.log(streamersArray);
+
+                    //Only show streamers that are online
+                    streamersArray = streamersArray.filter(item => item.username !== name);
+                    console.log(streamersArray);
+
+                    chrome.storage.sync.set({ streamersArray }, function () {
+                    });
+                }
+            });
+        }
+    }
+
     //Images for the table
     let imgTwitch = "<img src='images/twitch16.png'/>"
-    let imgMixer = "<img src='images/mixer16.png'/>"
     //Function to update table
     function updateTable(status, username, viewers, site) {
         let img = "";
-        if (site == MIXER_URL + username)
-            img = imgMixer;
-        else
-            img = imgTwitch;
+        img = imgTwitch;
 
         $(document).ready(function () {
             $("#onlineStreamersTable").append(
@@ -219,7 +192,7 @@ window.onload = function () {
                 "<td>" + img + "</td>" +
                 "<td class='hasLink' style='cursor:pointer' href='" + site + "'>" + username + "</td>" +
                 "<td>" + viewers + "</td>" +
-                "<td class='delete' id='" + username + "' style='cursor:pointer'>Hide</td>" +
+                "<td class='delete' id='" + username + "' style='cursor:pointer'>Delete</td>" +
                 "</tr>"
 
             );
@@ -229,6 +202,7 @@ window.onload = function () {
                 if ($(this).hasClass("delete")) {
                     //Deletes row from table element
                     $(this).closest("tr").remove();
+                    deleteStreamer($(this).attr("id"));
                 }
                 else if ($(this).hasClass("hasLink")) {
                     //Username was clicked
@@ -307,7 +281,7 @@ window.onload = function () {
     function getNameFromField() {
         const user = document.querySelector("#streamId").value;
         if (userExists(user)) return alert("You are already following " + user);
-        if(user === "") return false;
+        if (user === "") return false;
         return user;
     }
 
